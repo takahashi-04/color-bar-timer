@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="30本のバーが時間とともに減り、青・緑・黄・赤へと変化するカラーバータイマー。">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="カラーバー">
+  <link rel="icon" href="./assets/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="stylesheet" href="./style.css">
+  <title>Color Bar Timer | デジタルカラーバータイマー</title>
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="Color Bar Timer ホーム">
+        <span class="brand-icon" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+        <span>COLOR BAR <b>TIMER</b></span>
+      </a>
+      <span class="topbar-sub">30 BAR COUNTDOWN</span>
+    </header>
+
+    <main>
+      <div class="intro">
+        <p class="eyebrow">MAKE EVERY MINUTE VISIBLE</p>
+        <h1>時間を、<span>色で見る。</span></h1>
+        <p class="intro-copy">30本のバーで、残り時間がひと目でわかるタイマー。</p>
+      </div>
+
+      <section class="timer-panel" aria-label="タイマー">
+        <div class="panel-topline">
+          <span class="section-overline">TIME REMAINING <span class="mini-rule"></span> 残り時間</span>
+          <span class="status-pill" id="statusPill"><span class="status-dot"></span><span id="statusText">準備完了</span></span>
+        </div>
+
+        <div class="time-hero">
+          <div id="timeDisplay" class="time-display" role="timer" aria-label="残り時間30分">30:00</div>
+          <p id="timeSubtext" class="time-subtext">30分間のタイマー</p>
+        </div>
+
+        <div class="bar-frame" id="barFrame">
+          <div id="bars" class="bars" aria-hidden="true"></div>
+        </div>
+
+        <div class="bar-meta">
+          <span id="elapsedText">経過 0%</span>
+          <span id="barCountText">30 / 30 本</span>
+        </div>
+        <div id="progressA11y" class="sr-only" role="progressbar" aria-label="経過時間" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+
+        <div class="stages" aria-label="時間経過によるバーの色">
+          <div class="stage"><span class="stage-swatch" style="--swatch:#3478f6"></span><span>開始〜25%</span></div>
+          <div class="stage"><span class="stage-swatch" style="--swatch:#27a976"></span><span>25〜50%</span></div>
+          <div class="stage"><span class="stage-swatch" style="--swatch:#edb32d"></span><span>50〜75%</span></div>
+          <div class="stage"><span class="stage-swatch" style="--swatch:#ed575c"></span><span>75〜100%</span></div>
+        </div>
+      </section>
+
+      <section class="settings-panel" aria-labelledby="settingsTitle">
+        <div class="settings-header">
+          <div>
+            <p class="eyebrow">CUSTOMIZE YOUR SESSION</p>
+            <h2 id="settingsTitle">タイマーを設定</h2>
+          </div>
+          <p class="settings-description">好きな時間を指定できます</p>
+        </div>
+
+        <form id="durationForm" autocomplete="off">
+          <div class="duration-inputs">
+            <label class="duration-field" for="hoursInput">
+              <span>時間</span>
+              <input id="hoursInput" type="number" min="0" max="99" step="1" inputmode="numeric" value="0">
+              <span class="unit">HOURS</span>
+            </label>
+            <label class="duration-field" for="minutesInput">
+              <span>分</span>
+              <input id="minutesInput" type="number" min="0" max="59" step="1" inputmode="numeric" value="30">
+              <span class="unit">MINUTES</span>
+            </label>
+            <label class="duration-field" for="secondsInput">
+              <span>秒</span>
+              <input id="secondsInput" type="number" min="0" max="59" step="1" inputmode="numeric" value="0">
+              <span class="unit">SECONDS</span>
+            </label>
+          </div>
+          <p id="inputError" class="input-error" role="alert" hidden></p>
+
+          <div class="quick-setting">
+            <span class="quick-label">クイック設定</span>
+            <div class="presets" id="presets">
+              <button type="button" class="preset" data-minutes="5">5分</button>
+              <button type="button" class="preset" data-minutes="15">15分</button>
+              <button type="button" class="preset" data-minutes="25">25分</button>
+              <button type="button" class="preset selected" data-minutes="30">30分</button>
+              <button type="button" class="preset" data-minutes="45">45分</button>
+              <button type="button" class="preset" data-minutes="60">60分</button>
+              <button type="button" class="preset" data-minutes="90">90分</button>
+            </div>
+          </div>
+          <div class="controls">
+            <button id="startButton" class="control-btn primary" type="submit"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg><span id="startLabel">スタート</span></button>
+            <button id="pauseButton" class="control-btn secondary" type="button" disabled><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>ストップ</button>
+            <button id="resetButton" class="control-btn ghost" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>リセット</button>
+          </div>
+        </form>
+        <p class="helper"><span aria-hidden="true">✦</span> 時間を変更するには、タイマーをリセットしてください。設定と進行状況はこの端末に保存されます。</p>
+      </section>
+    </main>
+
+    <footer class="footer"><span>COLOR BAR TIMER</span><span>30 bars · 4 colors · Your time</span></footer>
+  </div>
+  <div id="announcement" role="status" class="sr-only" aria-live="polite"></div>
+</body>
+</html>

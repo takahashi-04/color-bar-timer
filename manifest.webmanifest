@@ -1,0 +1,16 @@
+{
+  "id": "./",
+  "name": "Color Bar Timer — デジタルカラーバータイマー",
+  "short_name": "カラーバー",
+  "description": "30本のバーで残り時間を表示するカラーバータイマー",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "lang": "ja",
+  "icons": [
+    { "src": "./assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "./assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
