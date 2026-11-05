@@ -1,5 +1,5 @@
 'use strict';
-const CACHE_NAME = 'color-bar-timer-v1';
+const CACHE_NAME = 'color-bar-timer-v2';
 const CORE = [
   './', './index.html', './style.css', './app.js', './manifest.webmanifest',
   './assets/icon-192.png', './assets/icon-512.png', './assets/apple-touch-icon.png'

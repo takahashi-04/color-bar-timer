@@ -26,12 +26,6 @@
     </header>
 
     <main>
-      <div class="intro">
-        <p class="eyebrow">MAKE EVERY MINUTE VISIBLE</p>
-        <h1>時間を、<span>色で見る。</span></h1>
-        <p class="intro-copy">30本のバーで、残り時間がひと目でわかるタイマー。</p>
-      </div>
-
       <section class="timer-panel" aria-label="タイマー">
         <div class="panel-topline">
           <span class="section-overline">TIME REMAINING <span class="mini-rule"></span> 残り時間</span>
@@ -64,10 +58,8 @@
       <section class="settings-panel" aria-labelledby="settingsTitle">
         <div class="settings-header">
           <div>
-            <p class="eyebrow">CUSTOMIZE YOUR SESSION</p>
             <h2 id="settingsTitle">タイマーを設定</h2>
           </div>
-          <p class="settings-description">好きな時間を指定できます</p>
         </div>
 
         <form id="durationForm" autocomplete="off">
@@ -108,11 +100,9 @@
             <button id="resetButton" class="control-btn ghost" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>リセット</button>
           </div>
         </form>
-        <p class="helper"><span aria-hidden="true">✦</span> 時間を変更するには、タイマーをリセットしてください。設定と進行状況はこの端末に保存されます。</p>
       </section>
     </main>
 
-    <footer class="footer"><span>COLOR BAR TIMER</span><span>30 bars · 4 colors · Your time</span></footer>
   </div>
   <div id="announcement" role="status" class="sr-only" aria-live="polite"></div>
 </body>
