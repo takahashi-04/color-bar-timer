@@ -20,6 +20,7 @@
     seconds: $('secondsInput'), error: $('inputError'),
     start: $('startButton'), startLabel: $('startLabel'), pause: $('pauseButton'),
     reset: $('resetButton'), presets: Array.from(document.querySelectorAll('.preset')),
+    sound: $('soundToggle'), soundState: $('soundState'),
     announcement: $('announcement')
   };
 
@@ -28,6 +29,60 @@
   let previousDisplayedSecond = -1;
   let previousBars = -1;
   let previousStage = '';
+  let soundEnabled = true;
+  let audioContext = null;
+  const activeTones = new Set();
+
+  // AudioContext must be unlocked by a user gesture on mobile Safari.
+  // The Start button and the sound switch both call this synchronously.
+  function unlockAudio() {
+    if (!soundEnabled) return;
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+    try {
+      if (!audioContext || audioContext.state === 'closed') audioContext = new AudioContextClass();
+      if (audioContext.state !== 'running') {
+        const promise = audioContext.resume();
+        if (promise && typeof promise.catch === 'function') promise.catch(() => {});
+      }
+    } catch { /* Audio unavailable, silent timer still works. */ }
+  }
+  function stopActiveTones() {
+    for (const tone of activeTones) {
+      try { tone.stop(); } catch { /* already stopped */ }
+    }
+    activeTones.clear();
+  }
+  function playFinishSound() {
+    if (!soundEnabled || document.visibilityState !== 'visible') return;
+    // Attempt a sound if the browser permits it. No alerts are guaranteed
+    // when iOS locks the screen or suspends this page.
+    if (!audioContext || audioContext.state !== 'running') return;
+    stopActiveTones();
+    const now = audioContext.currentTime + .03;
+    [880, 880, 1175].forEach((frequency, index) => {
+      try {
+        const start = now + index * .32;
+        const oscillator = audioContext.createOscillator();
+        const envelope = audioContext.createGain();
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(frequency, start);
+        envelope.gain.setValueAtTime(.0001, start);
+        envelope.gain.exponentialRampToValueAtTime(.18, start + .02);
+        envelope.gain.exponentialRampToValueAtTime(.0001, start + .25);
+        oscillator.connect(envelope);
+        envelope.connect(audioContext.destination);
+        oscillator.addEventListener('ended', () => {
+          activeTones.delete(oscillator);
+          oscillator.disconnect();
+          envelope.disconnect();
+        }, { once: true });
+        activeTones.add(oscillator);
+        oscillator.start(start);
+        oscillator.stop(start + .26);
+      } catch { /* Continue without audio if unsupported. */ }
+    });
+  }
 
   function safeJsonGet(key) {
     try { return JSON.parse(localStorage.getItem(key)); } catch { return null; }
@@ -86,6 +141,13 @@
   function persistSession() {
     safeJsonSet(SESSION_KEY, { ...session });
   }
+  function persistSettings() {
+    safeJsonSet(SETTINGS_KEY, { durationMs: session.totalMs, soundEnabled });
+  }
+  function updateSoundSwitch() {
+    els.sound.checked = soundEnabled;
+    els.soundState.textContent = soundEnabled ? 'オン' : 'オフ';
+  }
   function updatePresetSelection() {
     const ms = readInputs();
     els.presets.forEach((button) => {
@@ -110,6 +172,7 @@
         session.deadline = null;
         persistSession();
         releaseWakeLock();
+        playFinishSound();
         els.announcement.textContent = '時間になりました。';
       } else {
         session.remainingMs = remaining;
@@ -175,6 +238,7 @@
       session.remainingMs = inputDuration;
     }
     setError();
+    unlockAudio();
     session.deadline = Date.now() + session.remainingMs;
     session.status = 'running';
     persistSession();
@@ -189,10 +253,12 @@
     session.status = session.remainingMs === 0 ? 'finished' : 'paused';
     persistSession();
     releaseWakeLock();
+    if (session.status === 'finished') playFinishSound();
     render(true);
     els.announcement.textContent = session.status === 'paused' ? 'タイマーを停止しました。' : '時間になりました。';
   }
   function reset() {
+    stopActiveTones();
     if (session.status === 'idle') {
       const ms = readInputs();
       if (ms !== null) session.totalMs = ms;
@@ -205,7 +271,7 @@
     previousDisplayedSecond = -1;
     previousBars = -1;
     persistSession();
-    safeJsonSet(SETTINGS_KEY, { durationMs: session.totalMs });
+    persistSettings();
     releaseWakeLock();
     updatePresetSelection();
     render(true);
@@ -219,13 +285,15 @@
     if (ms === null) return;
     session.totalMs = ms;
     session.remainingMs = ms;
-    safeJsonSet(SETTINGS_KEY, { durationMs: ms });
+    persistSettings();
     persistSession();
     previousDisplayedSecond = -1;
     render(true);
   }
   function restore() {
     const savedSettings = safeJsonGet(SETTINGS_KEY);
+    soundEnabled = typeof savedSettings?.soundEnabled === 'boolean' ? savedSettings.soundEnabled : true;
+    updateSoundSwitch();
     const savedDuration = isValidDuration(savedSettings?.durationMs) ? savedSettings.durationMs : DEFAULT_MS;
     session.totalMs = savedDuration;
     session.remainingMs = savedDuration;
@@ -261,6 +329,13 @@
   els.form.addEventListener('submit', (event) => { event.preventDefault(); begin(); });
   els.pause.addEventListener('click', pause);
   els.reset.addEventListener('click', reset);
+  els.sound.addEventListener('change', () => {
+    soundEnabled = els.sound.checked;
+    if (soundEnabled) unlockAudio(); else stopActiveTones();
+    updateSoundSwitch();
+    persistSettings();
+    els.announcement.textContent = soundEnabled ? '終了音をオンにしました。' : '終了音をオフにしました。';
+  });
   for (const input of [els.hours, els.minutes, els.seconds]) input.addEventListener('input', onDurationEdit);
   for (const preset of els.presets) {
     preset.addEventListener('click', () => {

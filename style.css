@@ -149,8 +149,43 @@ body[data-state="finished"] .status-pill { background: #fff0f0; color: #bc383e; 
 .stage-swatch { width: 8px; height: 8px; border-radius: 2px; background: var(--swatch); flex: none; }
 
 .settings-panel { flex: none; min-width: 0; padding: 0 2px; }
-.settings-header { display: flex; justify-content: space-between; align-items: end; gap: 8px; margin-bottom: 7px; }
+.settings-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 7px; }
 h2 { margin: 0; font-size: 15px; letter-spacing: -.02em; }
+/* Completion sound switch: compact enough to keep the controls on one screen. */
+.sound-toggle { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; white-space: nowrap; }
+.sound-label { color: #52637a; font-size: 11px; font-weight: 750; }
+#soundState { color: #7a899d; font-size: 10px; }
+.sound-toggle input {
+  display: block;
+  position: relative;
+  flex: none;
+  appearance: none;
+  -webkit-appearance: none;
+  width: 40px;
+  height: 24px;
+  margin: 0;
+  border: 1px solid #cdd8e5;
+  border-radius: 99px;
+  background: #dce4ee;
+  cursor: pointer;
+  transition: background .18s, border-color .18s;
+}
+.sound-toggle input::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(30,45,64,.2);
+  transition: transform .18s;
+}
+.sound-toggle input:checked { background: var(--blue); border-color: var(--blue); }
+.sound-toggle input:checked::before { transform: translateX(16px); }
+.sound-toggle input:focus-visible { outline: 3px solid #76a7ff; outline-offset: 3px; }
+
 .eyebrow, .settings-description, .helper { display: none; }
 .duration-inputs { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; }
 .duration-field {
