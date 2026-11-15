@@ -60,28 +60,36 @@
     if (!audioContext || audioContext.state !== 'running') return;
     stopActiveTones();
     const now = audioContext.currentTime + .03;
-    [880, 880, 1175].forEach((frequency, index) => {
-      try {
-        const start = now + index * .32;
-        const oscillator = audioContext.createOscillator();
-        const envelope = audioContext.createGain();
-        oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(frequency, start);
-        envelope.gain.setValueAtTime(.0001, start);
-        envelope.gain.exponentialRampToValueAtTime(.18, start + .02);
-        envelope.gain.exponentialRampToValueAtTime(.0001, start + .25);
-        oscillator.connect(envelope);
-        envelope.connect(audioContext.destination);
-        oscillator.addEventListener('ended', () => {
-          activeTones.delete(oscillator);
-          oscillator.disconnect();
-          envelope.disconnect();
-        }, { once: true });
-        activeTones.add(oscillator);
-        oscillator.start(start);
-        oscillator.stop(start + .26);
-      } catch { /* Continue without audio if unsupported. */ }
-    });
+    // One chime = 3 notes (pi-pi-pii). Repeat the *whole chime* 3 times,
+    // with a short quiet interval between each group (9 notes in total).
+    const notes = [880, 880, 1175];
+    const noteInterval = .32;
+    const repeatInterval = 1.45;
+    const repetitions = 3;
+    for (let repeat = 0; repeat < repetitions; repeat += 1) {
+      notes.forEach((frequency, index) => {
+        try {
+          const start = now + repeat * repeatInterval + index * noteInterval;
+          const oscillator = audioContext.createOscillator();
+          const envelope = audioContext.createGain();
+          oscillator.type = 'sine';
+          oscillator.frequency.setValueAtTime(frequency, start);
+          envelope.gain.setValueAtTime(.0001, start);
+          envelope.gain.exponentialRampToValueAtTime(.18, start + .02);
+          envelope.gain.exponentialRampToValueAtTime(.0001, start + .25);
+          oscillator.connect(envelope);
+          envelope.connect(audioContext.destination);
+          oscillator.addEventListener('ended', () => {
+            activeTones.delete(oscillator);
+            oscillator.disconnect();
+            envelope.disconnect();
+          }, { once: true });
+          activeTones.add(oscillator);
+          oscillator.start(start);
+          oscillator.stop(start + .26);
+        } catch { /* Continue without audio if unsupported. */ }
+      });
+    }
   }
 
   function safeJsonGet(key) {
@@ -228,6 +236,8 @@
   }
   function begin() {
     if (session.status === 'running') return;
+    // Starting another countdown also silences any remaining finish chimes.
+    stopActiveTones();
     if (session.status === 'idle' || session.status === 'finished') {
       const inputDuration = readInputs();
       if (!isValidDuration(inputDuration)) {
@@ -348,7 +358,10 @@
     if (document.visibilityState === 'visible') {
       render(true);
       if (session.status === 'running') requestWakeLock();
-    } else releaseWakeLock();
+    } else {
+      releaseWakeLock();
+      stopActiveTones();
+    }
   });
   window.addEventListener('pageshow', () => render(true));
   window.addEventListener('keydown', (event) => {
